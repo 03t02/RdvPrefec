@@ -9,6 +9,7 @@
 Clone this project, and go inside of it.
 ```bash
 $> virtualenv .
+$> source ./bin/activate
 ```
 
 and then
