@@ -3,6 +3,11 @@
 ## Requirements
 - python 3.8
 - virtualenv
+- tor
+
+## Have tor
+To use this project, you should have Tor first.
+Follow this [tutorial](https://deepdarkweb.github.io/how-to-install-tor-on-macos-tutorial/) to get and activate Tor CLI on your computer
 
 ## How to install
 
