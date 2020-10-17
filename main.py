@@ -1,19 +1,44 @@
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
 
-options = webdriver.ChromeOptions()
-options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+def check_if_appointment(name):
+    print('Checking if appointement')
+    try:
+        browser.find_element_by_name(name)
+    except NoSuchElementException:
+        return False
+    return True
 
-driver = webdriver.Chrome(
-    ChromeDriverManager().install(),
-    options=options
-)
-driver.get('https://check.torproject.org/')
-title = driver.find_element_by_tag_name('h1')
-hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
+def navigateOnWebsite():
+    print('navigation starts')
+    try:
+        browser.find_element_by_xpath("/html/body/div[2]/div[2]/a[2]").click()
+        browser.find_element_by_name("condition").click()
+        browser.find_element_by_name("nextButton").click()
+    except NoSuchElementException:
+        return False
 
-if not hasTor:
-    print('[ERROR]: Tor it not activated. Please active tor to continue.')
-    driver.close()
+def alertUser():
+    print('Alert user that appointment is available')
 
+
+def init():
+    url = "http://www.seine-saint-denis.gouv.fr/booking/create/16105/0"
+    browser.get(url)
+
+while True:
+    browser = webdriver.Chrome(ChromeDriverManager().install())
+    init()
+    navigateOnWebsite()
+    if check_if_appointment('nextButton'):
+        alertUser()
+        time.sleep(2)
+        browser.close()
+    else:
+        time.sleep(2)
+        browser.close()
+        print('appointment not found')
