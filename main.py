@@ -7,6 +7,7 @@ from selenium.common.exceptions import NoSuchElementException
 from airtable.airtable import Airtable
 from twilio.rest import Client
 from airtable_config import AirtableConfig
+from twilo_config import TwiloConfig
 from constants import AIRTABLE_SERVICES, AIRTABLE_USERS
 
 
@@ -83,6 +84,7 @@ if __name__ == '__main__':
     with open('config.json', 'r') as data:
         config = json.load(data)
         airtable_cred = AirtableConfig(config)
+        twilo_cred = TwiloConfig(config)
 
     options = webdriver.ChromeOptions()
     options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
@@ -100,19 +102,21 @@ if __name__ == '__main__':
         browser.close()
 
     client = Client(
-        airtable_cred.get_account_sid(),
-        airtable_cred.get_auth_token()
+        twilo_cred.get_account_sid(),
+        twilo_cred.get_auth_token()
     )
 
+    airtable_base_key = airtable_cred.get_base_key()
+    airtable_api_key = airtable_cred.get_api_key()
     airtable_service = Airtable(
-        airtable_cred.get_base_key(),
+        airtable_base_key,
         AIRTABLE_SERVICES,
-        airtable_cred.get_api_key()
+        airtable_api_key
     )
     airtable_users = Airtable(
-        airtable_cred.get_base_key(),
+        airtable_base_key,
         AIRTABLE_USERS,
-        airtable_cred.get_api_key()
+        airtable_api_key
     )
 
     while True:
