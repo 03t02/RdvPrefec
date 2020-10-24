@@ -103,17 +103,19 @@ if __name__ == '__main__':
         airtable_cred.get_account_sid(),
         airtable_cred.get_auth_token()
     )
+
+    airtable_service = Airtable(
+        airtable_cred.get_base_key(),
+        AIRTABLE_SERVICES,
+        airtable_cred.get_api_key()
+    )
+    airtable_users = Airtable(
+        airtable_cred.get_base_key(),
+        AIRTABLE_USERS,
+        airtable_cred.get_api_key()
+    )
+
     while True:
-        airtable_service = Airtable(
-            airtable_cred.get_base_key(),
-            AIRTABLE_SERVICES,
-            airtable_cred.get_api_key()
-        )
-        airtable_users = Airtable(
-            airtable_cred.get_base_key(),
-            AIRTABLE_USERS,
-            airtable_cred.get_api_key()
-        )
         for service in airtable_service.get_all():
             print(service)
             init(service['fields']['url'])
