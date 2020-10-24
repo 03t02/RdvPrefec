@@ -66,21 +66,37 @@ def init(url):
     print(url)
     browser.get(url)
 
-account_sid = "ACc21106bd7655a710c2cf0cd30d266743"
-auth_token  = "27c7948e235ee6af7047b442d1e1f218"
-client = Client(account_sid, auth_token)
-while True:
-    airtable_service = Airtable('appzEtnmDfU7K9zGR', 'services', 'keyPKQzyOseBBygnb')
-    airtable_users = Airtable('appzEtnmDfU7K9zGR', 'users', 'keyPKQzyOseBBygnb')
-    for service in airtable_service.get_all():
-        print(service);
-        browser = webdriver.Chrome(ChromeDriverManager().install())
-        init(service['fields']['url'])
-        time.sleep(3)
-        navigateOnWebsite()
-        if check_if_appointment('nextButton', service['fields']['name'], service['fields']['prefecture_name']):
-            alertUser()
-            browser.close()
-        else:
-            browser.close()
-            print('APPOINTMENT NOT FOUND')
+
+if __name__ == '__main__':
+    options = webdriver.ChromeOptions()
+    options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+
+    browser = webdriver.Chrome(
+        ChromeDriverManager().install(),
+        options=options
+    )
+    browser.get('https://check.torproject.org/')
+    title = browser.find_element_by_tag_name('h1')
+    hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
+
+    if not hasTor:
+        print('[ERROR]: Tor it not activated. Please active tor to continue.')
+        browser.close()
+
+    account_sid = "ACc21106bd7655a710c2cf0cd30d266743"
+    auth_token  = "27c7948e235ee6af7047b442d1e1f218"
+    client = Client(account_sid, auth_token)
+    while True:
+        airtable_service = Airtable('appzEtnmDfU7K9zGR', 'services', 'keyPKQzyOseBBygnb')
+        airtable_users = Airtable('appzEtnmDfU7K9zGR', 'users', 'keyPKQzyOseBBygnb')
+        for service in airtable_service.get_all():
+            print(service);
+            init(service['fields']['url'])
+            time.sleep(3)
+            navigateOnWebsite()
+            if check_if_appointment('nextButton', service['fields']['name'], service['fields']['prefecture_name']):
+                alertUser()
+                browser.close()
+            else:
+                browser.close()
+                print('APPOINTMENT NOT FOUND')
