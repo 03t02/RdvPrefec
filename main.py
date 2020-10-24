@@ -64,8 +64,8 @@ def alert_user():
                 body="""
                 Bonjour,
 
-                Votre rendez-vous à la %s pour %s est maintenant disponible ! Cliquez vite sur ce lien:
-                %s
+                Votre rendez-vous à la {0} pour {1} est maintenant disponible ! Cliquez vite sur ce lien:
+                {2}
                 """.format(
                     str(service['fields']['prefecture_name'][0]),
                     str(service['fields']['name']),
