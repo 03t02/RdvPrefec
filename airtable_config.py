@@ -1,30 +1,22 @@
 import sys
 
 from utils import key_exists, key_not_exists
-from constants import AIRTABLE, ACCOUNT_SID, AUTH_TOKEN
+from constants import AIRTABLE, BASE_KEY, API_KEY
 
 
 class AirtableConfig:
-    __account_sid: str = None
-    __auth_token: str = None
     __base_key: str = None
     __api_key: str = None
 
     def __init__(self, config):
         if key_exists('airtable', config):
-            if key_not_exists(ACCOUNT_SID, config[AIRTABLE]):
-                sys.exit('[ERROR]: airtable.account_id is not exist.')
-            if key_not_exists(AUTH_TOKEN, config[AIRTABLE]):
-                sys.exit('[ERROR]: airtable.auth_token is not exist.')
+            if key_not_exists(BASE_KEY, config[AIRTABLE]):
+                sys.exit('[ERROR]: airtable.base_key is not exist.')
+            if key_not_exists(API_KEY, config[AIRTABLE]):
+                sys.exit('[ERROR]: airtable.api_key is not exist.')
 
-            self.__account_sid = config[AIRTABLE][ACCOUNT_SID]
-            self.__auth_token = config[AIRTABLE][AUTH_TOKEN]
-
-    def get_account_sid(self) -> str:
-        return self.__account_sid
-
-    def get_auth_token(self) -> str:
-        return self.__auth_token
+            self.__base_key = config[AIRTABLE][BASE_KEY]
+            self.__api_key = config[AIRTABLE][API_KEY]
 
     def get_base_key(self) -> str:
         return self.__base_key
