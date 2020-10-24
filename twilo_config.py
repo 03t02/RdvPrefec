@@ -12,7 +12,7 @@ class TwiloConfig:
         if key_exists(TWILO, config):
             if key_not_exists(ACCOUNT_SID, config[TWILO]):
                 sys.exit('[ERROR]: twilo.account_id is not exist.')
-            if key_not_exists(AUTH_TOKEN, config[AIRTABLE]):
+            if key_not_exists(AUTH_TOKEN, config[TWILO]):
                 sys.exit('[ERROR]: twilo.auth_token is not exist.')
 
             self.__account_sid = config[TWILO][ACCOUNT_SID]
