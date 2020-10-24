@@ -1,0 +1,5 @@
+AIRTABLE: str = 'airtable'
+ACCOUNT_SID: str = 'account_sid'
+AIRTABLE_SERVICES: str = 'services'
+AIRTABLE_USERS: str = 'users'
+AUTH_TOKEN: str = 'auth_token'
