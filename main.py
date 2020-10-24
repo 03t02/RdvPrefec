@@ -60,7 +60,16 @@ def alert_user():
             message = client.messages.create(
                 to=user_detail['fields']['Phone'],
                 from_="+18014163691",
-                body="Bonjour,\n\nVotre rendez-vous à la " + str(service['fields']['prefecture_name'][0]) + " pour " + str(service['fields']['name']) + " est maintenant disponible ! Cliquez vite sur ce lien : \n\n" + str(service['fields']['url'])
+                body="""
+                Bonjour,
+
+                Votre rendez-vous à la %s pour %s est maintenant disponible ! Cliquez vite sur ce lien:
+                %s
+                """.format(
+                    str(service['fields']['prefecture_name'][0]),
+                    str(service['fields']['name']),
+                    str(service['fields']['url'])
+                )
             )
             print(message.sid)
 
