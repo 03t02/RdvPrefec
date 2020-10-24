@@ -9,12 +9,13 @@ from twilio.rest import Client
 from airtable_config import AirtableConfig
 from twilo_config import TwiloConfig
 from constants import AIRTABLE_SERVICES, AIRTABLE_USERS
+from slack_webhook import Slack
 
 
-def check_if_appointment(name, service_name, prefecture_name):
-    print(prefecture_name)
-    print(service_name)
-    print('Checking if appointement')
+slack = Slack(url='https://hooks.slack.com/services/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')
+
+
+def check_if_appointment(name):
     try:
         browser.find_element_by_name(name)
     except NoSuchElementException:
@@ -23,28 +24,21 @@ def check_if_appointment(name, service_name, prefecture_name):
 
 
 def check_if_cookies():
-    print('Checking if cookies')
     try:
         browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]")
-        print('Cookies FOUND')
     except NoSuchElementException:
-        print('Cookies NOT FOUND')
         return False
     return True
 
 
 def navigate_on_website():
-    print('navigation starts')
     try:
         if check_if_cookies():
             browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]").click()
-            print('Cookies pressed')
         time.sleep(2)
         browser.find_element_by_name("condition").click()
-        print('Checkbox pressed')
         time.sleep(2)
         browser.find_element_by_name("nextButton").click()
-        print('Checkbox pressed')
         time.sleep(2)
     except NoSuchElementException:
         return False
@@ -57,8 +51,7 @@ def alert_user():
     if 'users_to_alert' in service['fields']:
         for user in service['fields']['users_to_alert']:
             user_detail = airtable_users.get(user)
-            print(user_detail)
-            message = client.messages.create(
+            client.messages.create(
                 to=user_detail['fields']['Phone'],
                 from_="+18014163691",
                 body="""
@@ -72,11 +65,20 @@ def alert_user():
                     str(service['fields']['url'])
                 )
             )
-            print(message.sid)
+            slack.post(text="```" + json.dumps({
+                'id': user_detail['fields']['id'],
+                'email': user_detail['fields']['Email'],
+                'phone': user_detail['fields']['Phone'],
+                'hasPaid': user_detail['fields']['hasPaid'],
+                'firstname': user_detail['fields']['First Name'],
+                'lastname': user_detail['fields']['Last Name'],
+                'prefecture_name': str(service['fields']['prefecture_name'][0]),
+                'service': str(service['fields']['name']),
+                'url': str(service['fields']['url'])
+            }, indent=4) + "```")
 
 
 def init(url):
-    print(url)
     browser.get(url)
 
 
@@ -121,13 +123,11 @@ if __name__ == '__main__':
 
     while True:
         for service in airtable_service.get_all():
-            print(service)
             init(service['fields']['url'])
             time.sleep(3)
             navigate_on_website()
-            if check_if_appointment('nextButton', service['fields']['name'], service['fields']['prefecture_name']):
+            if check_if_appointment('nextButton'):
                 alert_user()
                 browser.close()
             else:
                 browser.close()
-                print('APPOINTMENT NOT FOUND')
