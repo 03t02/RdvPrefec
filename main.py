@@ -3,6 +3,7 @@ import json
 import os
 import ast
 
+from colors_print import ColorPrint
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
@@ -26,6 +27,7 @@ def check_if_appointment(name):
     try:
         browser.find_element_by_name(name)
     except NoSuchElementException:
+        ColorPrint.print_fail('No appointment found. ' + name)
         return False
     return True
 
@@ -34,6 +36,7 @@ def check_if_cookies():
     try:
         browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]")
     except NoSuchElementException:
+        ColorPrint.print_fail('Cannot find Cookies banner to accept.')
         return False
     return True
 
@@ -42,12 +45,16 @@ def navigate_on_website():
     try:
         if check_if_cookies():
             browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]").click()
+        ColorPrint.print_info('Cookies banner found.')
         time.sleep(2)
         browser.find_element_by_name("condition").click()
+        ColorPrint.print_info('Cookies accepted')
         time.sleep(2)
         browser.find_element_by_name("nextButton").click()
+        ColorPrint.print_info('Going to the next page after accepting cookies.')
         time.sleep(2)
     except NoSuchElementException:
+        ColorPrint.print_fail('Cannot find elements navigate_on_website function.')
         return False
 
 
@@ -59,6 +66,13 @@ def alert_user():
         for user in service['fields']['users_to_alert']:
             user_detail = airtable_users.get(user)
             if not NO_SMS:
+                ColorPrint.print_info('''
+                    Sending SMS to {0}
+                    Email: {1}
+                '''.format(
+                    user_detail['fields']['Phone'],
+                    user_detail['fields']['Email']
+                ))
                 client.messages.create(
                     to=user_detail['fields']['Phone'],
                     from_="+18014163691",
@@ -87,6 +101,7 @@ def alert_user():
 
 
 def init(url):
+    ColorPrint.print_info('Going to this url: ' + url)
     browser.get(url)
 
 
@@ -95,6 +110,7 @@ if __name__ == '__main__':
         config = json.load(data)
         airtable_cred = AirtableConfig(config)
         twilo_cred = TwiloConfig(config)
+        ColorPrint.print_info('config.json read. All set.')
 
     options = webdriver.ChromeOptions()
     options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
@@ -108,8 +124,11 @@ if __name__ == '__main__':
     hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
 
     if not hasTor:
-        print('[ERROR]: Tor it not activated. Please active tor to continue.')
+        ColorPrint.print_fail(
+            '[ERROR]: Tor it not activated. Please active tor to continue.'
+        )
         browser.close()
+    ColorPrint.print_info('Tor is using...Can continue.')
 
     client = Client(
         twilo_cred.get_account_sid(),
