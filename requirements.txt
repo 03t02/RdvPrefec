@@ -7,10 +7,14 @@ configparser==5.0.1
 crayons==0.4.0
 idna==2.10
 PyJWT==1.7.1
+PySocks==1.7.1
+python-dotenv==0.14.0
 pytz==2020.1
 requests==2.24.0
 selenium==3.141.0
 six==1.15.0
+slack-webhook==1.0.3
+stem==1.8.0
 twilio==6.46.0
 urllib3==1.25.11
 webdriver-manager==3.2.2
