@@ -43,6 +43,7 @@ def check_if_cookies():
 
 def navigate_on_website():
     try:
+        browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
         browser.find_element_by_name("condition").click()
         ColorPrint.print_info('Conditions accepted')
         time.sleep(2)
@@ -109,22 +110,22 @@ if __name__ == '__main__':
         ColorPrint.print_info('config.json read. All set.')
 
     options = webdriver.ChromeOptions()
-    options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+    #options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
 
     browser = webdriver.Chrome(
         ChromeDriverManager().install(),
         options=options
     )
-    browser.get('https://check.torproject.org/')
-    title = browser.find_element_by_tag_name('h1')
-    hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
+    #browser.get('https://check.torproject.org/')
+    #title = browser.find_element_by_tag_name('h1')
+    #hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
 
-    if not hasTor:
-        ColorPrint.print_fail(
-            '[ERROR]: Tor it not activated. Please active tor to continue.'
-        )
-        browser.close()
-    ColorPrint.print_info('Tor is using...Can continue.')
+    #if not hasTor:
+    #    ColorPrint.print_fail(
+    #        '[ERROR]: Tor it not activated. Please active tor to continue.'
+    #    )
+    #    browser.close()
+    #ColorPrint.print_info('Tor is using...Can continue.')
 
     client = Client(
         twilo_cred.get_account_sid(),
