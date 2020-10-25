@@ -43,12 +43,8 @@ def check_if_cookies():
 
 def navigate_on_website():
     try:
-        if check_if_cookies():
-            browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]").click()
-        ColorPrint.print_info('Cookies banner found.')
-        time.sleep(2)
         browser.find_element_by_name("condition").click()
-        ColorPrint.print_info('Cookies accepted')
+        ColorPrint.print_info('Conditions accepted')
         time.sleep(2)
         browser.find_element_by_name("nextButton").click()
         ColorPrint.print_info('Going to the next page after accepting cookies.')
