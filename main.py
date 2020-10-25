@@ -78,7 +78,7 @@ def alert_user():
                     from_="+18014163691",
                     body="""
                     Bonjour,
-    
+
                     Votre rendez-vous à la {0} pour {1} est maintenant disponible ! Cliquez vite sur ce lien:
                     {2}
                     """.format(
@@ -155,6 +155,3 @@ if __name__ == '__main__':
             navigate_on_website()
             if check_if_appointment('nextButton'):
                 alert_user()
-                browser.close()
-            else:
-                browser.close()
