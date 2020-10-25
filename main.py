@@ -1,8 +1,8 @@
 import time
 import json
-import os
-import ast
 
+from utils import env
+from dotenv import load_dotenv
 from colors_print import ColorPrint
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -11,16 +11,12 @@ from airtable.airtable import Airtable
 from twilio.rest import Client
 from airtable_config import AirtableConfig
 from twilo_config import TwiloConfig
-from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS
+from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS, NO_TOR
 from slack_webhook import Slack
 
 
 slack = Slack(url='https://hooks.slack.com/services/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')
-env_sms = os.getenv(NO_SMS)
-NO_SMS: bool = True
-
-if env_sms:
-    NO_SMS = ast.literal_eval(env_sms)
+load_dotenv(verbose=True)
 
 
 def check_if_appointment(name):
@@ -54,7 +50,7 @@ def alert_user():
     if 'users_to_alert' in service['fields']:
         for user in service['fields']['users_to_alert']:
             user_detail = airtable_users.get(user)
-            if not NO_SMS:
+            if not env(NO_SMS):
                 ColorPrint.print_info('''
                     Sending SMS to {0}
                     Email: {1}
@@ -76,6 +72,7 @@ def alert_user():
                         str(service['fields']['url'])
                     )
                 )
+            ColorPrint.print_info('Alerting user: ' + user_detail['fields']['Email'])
             slack.post(text="```" + json.dumps({
                 'id': user_detail['fields']['id'],
                 'email': user_detail['fields']['Email'],
@@ -102,22 +99,25 @@ if __name__ == '__main__':
         ColorPrint.print_info('config.json read. All set.')
 
     options = webdriver.ChromeOptions()
-    #options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+    if not env(NO_TOR):
+        options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
 
     browser = webdriver.Chrome(
         ChromeDriverManager().install(),
         options=options
     )
-    #browser.get('https://check.torproject.org/')
-    #title = browser.find_element_by_tag_name('h1')
-    #hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
 
-    #if not hasTor:
-    #    ColorPrint.print_fail(
-    #        '[ERROR]: Tor it not activated. Please active tor to continue.'
-    #    )
-    #    browser.close()
-    #ColorPrint.print_info('Tor is using...Can continue.')
+    if not env(NO_TOR):
+        browser.get('https://check.torproject.org/')
+        title = browser.find_element_by_tag_name('h1')
+        hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
+
+        if not hasTor:
+            ColorPrint.print_fail(
+                '[ERROR]: Tor it not activated. Please active tor to continue.'
+            )
+            browser.close()
+        ColorPrint.print_info('Tor is using...Can continue.')
 
     client = Client(
         twilo_cred.get_account_sid(),
