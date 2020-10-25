@@ -1,5 +1,7 @@
 import time
 import json
+import os
+import ast
 
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -8,11 +10,16 @@ from airtable.airtable import Airtable
 from twilio.rest import Client
 from airtable_config import AirtableConfig
 from twilo_config import TwiloConfig
-from constants import AIRTABLE_SERVICES, AIRTABLE_USERS
+from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS
 from slack_webhook import Slack
 
 
 slack = Slack(url='https://hooks.slack.com/services/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')
+env_sms = os.getenv(NO_SMS)
+NO_SMS: bool = True
+
+if env_sms:
+    NO_SMS = ast.literal_eval(env_sms)
 
 
 def check_if_appointment(name):
@@ -51,20 +58,21 @@ def alert_user():
     if 'users_to_alert' in service['fields']:
         for user in service['fields']['users_to_alert']:
             user_detail = airtable_users.get(user)
-            client.messages.create(
-                to=user_detail['fields']['Phone'],
-                from_="+18014163691",
-                body="""
-                Bonjour,
-
-                Votre rendez-vous à la {0} pour {1} est maintenant disponible ! Cliquez vite sur ce lien:
-                {2}
-                """.format(
-                    str(service['fields']['prefecture_name'][0]),
-                    str(service['fields']['name']),
-                    str(service['fields']['url'])
+            if not NO_SMS:
+                client.messages.create(
+                    to=user_detail['fields']['Phone'],
+                    from_="+18014163691",
+                    body="""
+                    Bonjour,
+    
+                    Votre rendez-vous à la {0} pour {1} est maintenant disponible ! Cliquez vite sur ce lien:
+                    {2}
+                    """.format(
+                        str(service['fields']['prefecture_name'][0]),
+                        str(service['fields']['name']),
+                        str(service['fields']['url'])
+                    )
                 )
-            )
             slack.post(text="```" + json.dumps({
                 'id': user_detail['fields']['id'],
                 'email': user_detail['fields']['Email'],
