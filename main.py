@@ -32,23 +32,15 @@ def check_if_appointment(name):
     return True
 
 
-def check_if_cookies():
-    try:
-        browser.find_element_by_xpath("//*[@id='cookies-banner']/div[2]/a[2]")
-    except NoSuchElementException:
-        ColorPrint.print_fail('Cannot find Cookies banner to accept.')
-        return False
-    return True
-
-
 def navigate_on_website():
     try:
         browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+        time.sleep(2)
         browser.find_element_by_name("condition").click()
         ColorPrint.print_info('Conditions accepted')
         time.sleep(2)
         browser.find_element_by_name("nextButton").click()
-        ColorPrint.print_info('Going to the next page after accepting cookies.')
+        ColorPrint.print_info('Going to the next page')
         time.sleep(2)
     except NoSuchElementException:
         ColorPrint.print_fail('Cannot find elements navigate_on_website function.')
