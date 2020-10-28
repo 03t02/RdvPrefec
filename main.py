@@ -19,11 +19,13 @@ slack = Slack(url='https://hooks.slack.com/services/TF2BFFFKK/B01D9HSES03/7yhu0G
 load_dotenv(verbose=True)
 
 
-def check_if_appointment(name):
+def check_if_appointment(name, current_service):
     try:
         browser.find_element_by_name(name)
+        airtable_service.update(current_service['id'], {'appointment_status': True})
     except NoSuchElementException:
         ColorPrint.print_fail('No appointment found. ' + name)
+        airtable_service.update(current_service['id'], {'appointment_status': False})
         return False
     return True
 
@@ -44,9 +46,6 @@ def navigate_on_website():
 
 
 def alert_user():
-    fields = {'appointment_status': True}
-    airtable_service.update(service['id'], fields)
-
     if 'users_to_alert' in service['fields']:
         for user in service['fields']['users_to_alert']:
             user_detail = airtable_users.get(user)
@@ -142,5 +141,5 @@ if __name__ == '__main__':
             init(service['fields']['url'])
             time.sleep(3)
             navigate_on_website()
-            if check_if_appointment('nextButton'):
+            if check_if_appointment('nextButton', service):
                 alert_user()
