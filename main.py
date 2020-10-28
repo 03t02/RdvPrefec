@@ -1,31 +1,51 @@
 import time
 import json
+import sys
 
 from utils import env
 from dotenv import load_dotenv
 from colors_print import ColorPrint
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
-from airtable.airtable import Airtable
 from twilio.rest import Client
 from airtable_config import AirtableConfig
+from airtable_database import AirtableDatabase
 from twilo_config import TwiloConfig
-from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS, NO_TOR
+from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS
 from slack_webhook import Slack
+from browser import Browser
 
 
 slack = Slack(url='https://hooks.slack.com/services/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')
 load_dotenv(verbose=True)
+driver = Browser()
+browser = driver.browser
+
+try:
+    with open('config.json', 'r') as data:
+        config = json.load(data)
+        twilo_credentials = TwiloConfig(config)
+        ColorPrint.print_info('config.json read. All set.')
+except EnvironmentError:
+    ColorPrint.print_fail('[ERROR]: Cannot read config.json file')
+    sys.exit()
+
+client = Client(
+    twilo_credentials.get_account_sid(),
+    twilo_credentials.get_auth_token()
+)
+
+airtable_db = AirtableDatabase(AirtableConfig(config))
+services_table = airtable_db.get_table(AIRTABLE_SERVICES)
+services_users = airtable_db.get_table(AIRTABLE_USERS)
 
 
 def check_if_appointment(name, current_service):
     try:
         browser.find_element_by_name(name)
-        airtable_service.update(current_service['id'], {'appointment_status': True})
+        services_table.update(current_service['id'], {'appointment_status': True})
     except NoSuchElementException:
         ColorPrint.print_fail('No appointment found. ' + name)
-        airtable_service.update(current_service['id'], {'appointment_status': False})
+        services_table.update(current_service['id'], {'appointment_status': False})
         return False
     return True
 
@@ -48,7 +68,7 @@ def navigate_on_website():
 def alert_user():
     if 'users_to_alert' in service['fields']:
         for user in service['fields']['users_to_alert']:
-            user_detail = airtable_users.get(user)
+            user_detail = services_users.get(user)
             if not env(NO_SMS):
                 ColorPrint.print_info('''
                     Sending SMS to {0}
@@ -85,60 +105,10 @@ def alert_user():
             }, indent=4) + "```")
 
 
-def init(url):
-    ColorPrint.print_info('Going to this url: ' + url)
-    browser.get(url)
-
-
 if __name__ == '__main__':
-    with open('config.json', 'r') as data:
-        config = json.load(data)
-        airtable_cred = AirtableConfig(config)
-        twilo_cred = TwiloConfig(config)
-        ColorPrint.print_info('config.json read. All set.')
-
-    options = webdriver.ChromeOptions()
-    if not env(NO_TOR):
-        options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
-
-    browser = webdriver.Chrome(
-        ChromeDriverManager().install(),
-        options=options
-    )
-
-    if not env(NO_TOR):
-        browser.get('https://check.torproject.org/')
-        title = browser.find_element_by_tag_name('h1')
-        hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
-
-        if not hasTor:
-            ColorPrint.print_fail(
-                '[ERROR]: Tor it not activated. Please active tor to continue.'
-            )
-            browser.close()
-        ColorPrint.print_info('Tor is using...Can continue.')
-
-    client = Client(
-        twilo_cred.get_account_sid(),
-        twilo_cred.get_auth_token()
-    )
-
-    airtable_base_key = airtable_cred.get_base_key()
-    airtable_api_key = airtable_cred.get_api_key()
-    airtable_service = Airtable(
-        airtable_base_key,
-        AIRTABLE_SERVICES,
-        airtable_api_key
-    )
-    airtable_users = Airtable(
-        airtable_base_key,
-        AIRTABLE_USERS,
-        airtable_api_key
-    )
-
     while True:
-        for service in airtable_service.get_all():
-            init(service['fields']['url'])
+        for service in services_table.get_all():
+            driver.visit_url(service['fields']['url'])
             time.sleep(3)
             navigate_on_website()
             if check_if_appointment('nextButton', service):
