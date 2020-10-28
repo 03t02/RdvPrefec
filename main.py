@@ -4,19 +4,20 @@ import json
 from utils import env
 from dotenv import load_dotenv
 from colors_print import ColorPrint
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
 from airtable.airtable import Airtable
 from twilio.rest import Client
 from airtable_config import AirtableConfig
 from twilo_config import TwiloConfig
-from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS, NO_TOR
+from constants import AIRTABLE_SERVICES, AIRTABLE_USERS, NO_SMS
 from slack_webhook import Slack
+from tor import Tor
 
 
 slack = Slack(url='https://hooks.slack.com/services/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')
 load_dotenv(verbose=True)
+tor = Tor()
+browser = tor.get_browser()
 
 
 def check_if_appointment(name, current_service):
@@ -96,27 +97,6 @@ if __name__ == '__main__':
         airtable_cred = AirtableConfig(config)
         twilo_cred = TwiloConfig(config)
         ColorPrint.print_info('config.json read. All set.')
-
-    options = webdriver.ChromeOptions()
-    if not env(NO_TOR):
-        options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
-
-    browser = webdriver.Chrome(
-        ChromeDriverManager().install(),
-        options=options
-    )
-
-    if not env(NO_TOR):
-        browser.get('https://check.torproject.org/')
-        title = browser.find_element_by_tag_name('h1')
-        hasTor = title.text == 'Congratulations. This browser is configured to use Tor.'
-
-        if not hasTor:
-            ColorPrint.print_fail(
-                '[ERROR]: Tor it not activated. Please active tor to continue.'
-            )
-            browser.close()
-        ColorPrint.print_info('Tor is using...Can continue.')
 
     client = Client(
         twilo_cred.get_account_sid(),
